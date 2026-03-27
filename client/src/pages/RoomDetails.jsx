@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import api from "../services/api";
-import { SERVER_URL } from "../config";
 
 function RoomDetails() {
   const { id } = useParams();
@@ -105,7 +104,7 @@ function RoomDetails() {
                 <Link key={image.id} to={`/images/${image.id}`}>
                   <img
                     className="image-grid-thumb"
-                    src={`${SERVER_URL}${image.url}`}
+                    src={image.url}
                     alt="Room inspection"
                   />
                 </Link>

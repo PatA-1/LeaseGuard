@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../services/api";
-import { SERVER_URL } from "../config";
 
 function ImageDetails() {
   const { id } = useParams();
@@ -101,7 +100,7 @@ function ImageDetails() {
           <div style={{ position: "relative", display: "inline-block", maxWidth: "100%" }}>
             <img
               ref={imageRef}
-              src={`${SERVER_URL}${image.url}`}
+              src={image.url}
               alt="Inspection"
               onClick={handleImageClick}
               style={{

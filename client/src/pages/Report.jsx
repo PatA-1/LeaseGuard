@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../services/api";
-import { SERVER_URL } from "../config";
 
 function getSeverityClass(severity) {
   const value = severity?.toLowerCase();
@@ -141,7 +140,7 @@ function Report() {
                   <div key={image.id} className="image-card">
                     <div className="image-frame">
                       <img
-                        src={`${SERVER_URL}${image.url}`}
+                        src={image.url}
                         alt="Inspection"
                       />
                     </div>

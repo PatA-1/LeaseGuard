@@ -1,113 +1,89 @@
+const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
 const prisma = require("../utils/prisma");
 
+// Upload image to Cloudinary
 const uploadImage = async (req, res) => {
   try {
-    console.log("UPLOAD BODY:", req.body);
-    console.log("UPLOAD FILE:", req.file);
-    console.log("AUTH USER:", req.user);
-
     const roomId = parseInt(req.body.roomId, 10);
+
+    if (!roomId) {
+      return res.status(400).json({ message: "Room ID is required" });
+    }
 
     if (!req.file) {
       return res.status(400).json({ message: "No image uploaded" });
     }
 
-    if (!roomId || Number.isNaN(roomId)) {
-      return res.status(400).json({ message: "Invalid room ID" });
-    }
-
-    const room = await prisma.room.findFirst({
-      where: {
-        id: roomId,
-        property: {
-          userId: req.user.id
-        }
-      }
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "leaseguard",
     });
 
-    if (!room) {
-      return res.status(404).json({ message: "Room not found" });
-    }
+    // Delete temp file from server
+    fs.unlinkSync(req.file.path);
 
+    // Save to DB
     const image = await prisma.image.create({
       data: {
-        url: `/uploads/${req.file.filename}`,
-        roomId
-      }
+        url: result.secure_url, // FULL URL from Cloudinary
+        roomId,
+      },
     });
 
     return res.status(201).json(image);
   } catch (error) {
     console.error("UPLOAD IMAGE ERROR:", error);
+
     return res.status(500).json({
       message: "Server error",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
+// Get all images for a room
 const getImagesByRoom = async (req, res) => {
   try {
     const roomId = parseInt(req.params.roomId, 10);
 
-    const room = await prisma.room.findFirst({
-      where: {
-        id: roomId,
-        property: {
-          userId: req.user.id
-        }
-      },
-      include: {
-        images: {
-          orderBy: {
-            createdAt: "desc"
-          }
-        }
-      }
+    const images = await prisma.image.findMany({
+      where: { roomId },
+      orderBy: { createdAt: "desc" },
     });
-    if (!room) {
-      return res.status(404).json({ message: "Room not found" });
-    }
 
-    return res.json(room.images);
+    res.json(images);
   } catch (error) {
     console.error("GET IMAGES ERROR:", error);
-    return res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get image by ID (with annotations)
 const getImageById = async (req, res) => {
   try {
     const imageId = parseInt(req.params.id, 10);
 
-    const image = await prisma.image.findFirst({
-      where: {
-        id: imageId,
-        room: {
-          property: {
-            userId: req.user.id
-          }
-        }
-      }
+    const image = await prisma.image.findUnique({
+      where: { id: imageId },
+      include: {
+        annotations: true,
+      },
     });
 
     if (!image) {
       return res.status(404).json({ message: "Image not found" });
     }
 
-    return res.json(image);
+    res.json(image);
   } catch (error) {
     console.error("GET IMAGE BY ID ERROR:", error);
-    return res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 module.exports = {
   uploadImage,
   getImagesByRoom,
-  getImageById
+  getImageById,
 };
