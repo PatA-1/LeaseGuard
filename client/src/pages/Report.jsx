@@ -138,11 +138,43 @@ function Report() {
               ) : (
                 room.images.map((image) => (
                   <div key={image.id} className="image-card">
-                    <div className="image-frame">
+                    <div
+                      className="image-frame"
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        width: "100%",
+                        maxWidth: "500px"
+                      }}
+                    >
                       <img
                         src={image.url}
                         alt="Inspection"
+                        style={{
+                          width: "100%",
+                          display: "block"
+                        }}
                       />
+
+                      {image.annotations.map((annotation, index) => (
+                        <div
+                          key={annotation.id}
+                          title={`${annotation.note} (${annotation.severity})`}
+                          className="annotation-dot saved"
+                          style={{
+                            left: `${annotation.x * 100}%`,
+                            top: `${annotation.y * 100}%`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            color: "#111"
+                          }}
+                        >
+                          {index + 1}
+                        </div>
+                      ))}
                     </div>
 
                     <p className="timestamp">
@@ -156,18 +188,16 @@ function Report() {
                       <p className="muted">No issues recorded for this image.</p>
                     ) : (
                       <ul className="issue-list">
-                        {image.annotations.map((annotation) => (
+                        {image.annotations.map((annotation, index) => (
                           <li key={annotation.id} className="issue-item">
+                            <strong>#{index + 1}</strong>{" "}
                             <span className={getSeverityClass(annotation.severity)}>
                               {annotation.severity}
                             </span>
-                            <span style={{ marginLeft: "10px" }}>
-                              {annotation.note}
-                            </span>
+                            <span style={{ marginLeft: "10px" }}>{annotation.note}</span>
                             <br />
                             <small className="muted">
-                              Logged:{" "}
-                              {new Date(annotation.createdAt).toLocaleString()}
+                              Logged: {new Date(annotation.createdAt).toLocaleString()}
                             </small>
                           </li>
                         ))}
